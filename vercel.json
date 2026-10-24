@@ -1,6 +1,6 @@
 {
   "functions": {
-    "api/agent.js": { "maxDuration": 60, "memory": 1024, "includeFiles": "circuits/**" }
+    "api/agent.js": { "maxDuration": 60, "includeFiles": "circuits/**" }
   },
   "rewrites": [{ "source": "/agent", "destination": "/api/agent" }]
 }
