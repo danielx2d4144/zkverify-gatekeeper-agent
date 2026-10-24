@@ -3,8 +3,7 @@
     "api/check.js": {
       "maxDuration": 60,
       "memory": 1769,
-      "includeFiles": "{circuits/**,node_modules/@reclaimprotocol/zk-symmetric-crypto/lib/stwo/**}",
-      "excludeFiles": "node_modules/@reclaimprotocol/zk-fetch/lib/**"
+      "includeFiles": "{circuits/**,node_modules/@reclaimprotocol/zk-symmetric-crypto/lib/stwo/**}"
     },
     "api/zkverify.js": {
       "maxDuration": 20
