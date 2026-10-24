@@ -38,9 +38,10 @@ async function handleHealth(req, res) {
   let storeOk = false; try { storeOk = await store.ping(); } catch {}
   const day = new Date().toISOString().slice(0, 10);
   let used = null; try { used = { today: Number((await store.get(`zk:day:${day}`)) || 0), month: Number((await store.get(`zk:month:${day.slice(0, 7)}`)) || 0) }; } catch {}
+  let reclaimApp = null; try { const m = await import('./zkfetch.mjs'); reclaimApp = await m.appRegistered(process.env.RECLAIM_APP_ID || ''); } catch {}
   send(res, 200, {
     ok: true, service: 'p2p-alert-guard', version: '1.0.0', node: process.version, store: store.kind, store_ok: storeOk,
-    configured: { paystack: !!process.env.PAYSTACK_SECRET_KEY, reclaim: !!(process.env.RECLAIM_APP_ID && process.env.RECLAIM_APP_SECRET), zkverify_kurier: !!process.env.KURIER_API_KEY },
+    configured: { paystack: !!process.env.PAYSTACK_SECRET_KEY, reclaim: !!(process.env.RECLAIM_APP_ID && process.env.RECLAIM_APP_SECRET), zkverify_kurier: !!process.env.KURIER_API_KEY, reclaim_app_zkfetch_enabled: reclaimApp },
     merchant_payee: process.env.MERCHANT_PAYEE || null, test_mode_allowed: (process.env.ALLOW_TEST_MODE || 'true') === 'true',
     zkfetch_used: used, zkfetch_caps: { daily: Number(process.env.ZKFETCH_DAILY_CAP || 10), monthly: Number(process.env.ZKFETCH_MONTHLY_CAP || 60) },
   });
