@@ -1,0 +1,32 @@
+{
+  "functions": {
+    "api/check.js": {
+      "maxDuration": 60,
+      "memory": 1769,
+      "includeFiles": "{circuits/**,node_modules/@reclaimprotocol/zk-symmetric-crypto/lib/stwo/**}",
+      "excludeFiles": "node_modules/@reclaimprotocol/zk-fetch/lib/**"
+    },
+    "api/zkverify.js": {
+      "maxDuration": 20
+    },
+    "api/result.js": {
+      "maxDuration": 10
+    },
+    "api/health.js": {
+      "maxDuration": 10
+    },
+    "api/demo-payment.js": {
+      "maxDuration": 15
+    }
+  },
+  "rewrites": [
+    {
+      "source": "/check",
+      "destination": "/api/check"
+    },
+    {
+      "source": "/health",
+      "destination": "/api/health"
+    }
+  ]
+}
