@@ -6,7 +6,8 @@
   "scripts": {
     "start": "node src/server.js",
     "test": "node test/harness.js",
-    "postinstall": "sh scripts/fetch-circuits.sh || true"
+    "postinstall": "sh scripts/fetch-circuits.sh || true",
+    "vercel-build": "sh scripts/fetch-circuits.sh"
   },
   "keywords": [],
   "author": "",
@@ -14,5 +15,8 @@
   "dependencies": {
     "snarkjs": "^0.7.6"
   },
-  "private": true
+  "private": true,
+  "engines": {
+    "node": ">=20"
+  }
 }
