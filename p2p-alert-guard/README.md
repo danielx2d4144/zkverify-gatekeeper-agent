@@ -124,7 +124,8 @@ Vercel Hobby (serverless Node 24, 60 s max), free Upstash Redis, Reclaim free ti
 ## Files
 
 - `src/guard.js`: decision engine (fail-closed)
-- `src/zktls.js`: zkFetch call and independent Reclaim-proof verification
+- `src/zktls.js`: Paystack zkFetch request and independent Reclaim-proof verification
+- `src/zkfetch.mjs`: ESM port of `@reclaimprotocol/zk-fetch`'s `zkFetch()` (same attestor-core call, app check and usage logging). The npm package is CommonJS that `require()`s ESM-only deps, which Vercel's runtime rejects
 - `src/receipt.js`: Groth16 decision proof and zkVerify (Kurier) submission
 - `src/store.js`: Upstash Redis / in-memory store (prefixed keys)
 - `src/http.js`, `api/*.js`: HTTP handlers (Vercel functions); `src/server.js` for local
