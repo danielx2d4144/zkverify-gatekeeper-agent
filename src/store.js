@@ -39,6 +39,6 @@ function makeStore() {
   const url = process.env.UPSTASH_REDIS_REST_URL || process.env.KV_REST_API_URL;
   const token = process.env.UPSTASH_REDIS_REST_TOKEN || process.env.KV_REST_API_TOKEN;
   if (url && token) return redisStore(url, token);
-  return fileStore(process.env.DATA_DIR || path.join(__dirname, '../data'));
+  return fileStore(process.env.DATA_DIR || (process.env.VERCEL ? '/tmp/gk-data' : path.join(__dirname, '../data')));
 }
 module.exports = { makeStore };
