@@ -28,14 +28,10 @@ async function precheck(reference, secretKey, fetchImpl = fetch) {
   return { found: true, http: r.status };
 }
 
-let client;
 async function zkFetchPaystack(reference, { appId, appSecret, secretKey }) {
-  if (!client) {
-    const { ReclaimClient } = require('@reclaimprotocol/zk-fetch');
-    client = new ReclaimClient(appId, appSecret);
-  }
-  const proof = await client.zkFetch(
-    verifyUrl(reference),
+  const { zkFetch } = await import('./zkfetch.mjs'); // ESM port of zk-fetch (see file header)
+  return zkFetch(
+    appId, appSecret, verifyUrl(reference),
     { method: 'GET', headers: { accept: 'application/json' } },
     {
       headers: { authorization: `Bearer ${secretKey}` }, // private: hidden from the proof
@@ -44,7 +40,6 @@ async function zkFetchPaystack(reference, { appId, appSecret, secretKey }) {
       responseRedactions: [{ regex: MATCH_CORE }, { regex: MATCH_CCY }],
     }
   );
-  return proof;
 }
 
 let attestorCache = { at: 0, list: [] };
