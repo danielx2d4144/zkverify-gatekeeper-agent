@@ -119,7 +119,7 @@ Rebuild the circuit: `npx circom2 circuits/release_decision.circom --r1cs --wasm
 
 ## Deployment
 
-Vercel Hobby (serverless Node 22, 60 s max), free Upstash Redis, Reclaim free tier (zkFetch calls are capped per day and month, and proofs are cached per reference, so re-checks cost nothing), Kurier testnet. $0 total.
+Vercel Hobby (serverless Node 24, 60 s max), free Upstash Redis, Reclaim free tier (zkFetch calls are capped per day and month, and proofs are cached per reference, so re-checks cost nothing), Kurier testnet. $0 total.
 
 ## Files
 
