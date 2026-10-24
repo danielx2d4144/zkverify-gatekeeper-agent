@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>P2P Alert Guard — don't release crypto on a fake bank alert</title>
+<style>
+  :root{--bg:#0d1117;--card:#161b22;--line:#30363d;--fg:#e6edf3;--mute:#8b949e;--ok:#2ea043;--bad:#da3633;--acc:#58a6ff}
+  *{box-sizing:border-box}body{margin:0;font:15px/1.5 system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:var(--bg);color:var(--fg)}
+  main{max-width:820px;margin:0 auto;padding:28px 18px 60px}h1{font-size:26px;margin:0 0 4px}h2{font-size:17px;margin:28px 0 8px}
+  p{color:var(--mute);margin:6px 0}.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:18px;margin-top:16px}
+  label{display:block;font-size:13px;color:var(--mute);margin:10px 0 4px}input{width:100%;padding:10px;border-radius:7px;border:1px solid var(--line);background:#0d1117;color:var(--fg);font-size:15px}
+  .row{display:grid;grid-template-columns:1fr 1fr;gap:12px}@media(max-width:600px){.row{grid-template-columns:1fr}}
+  button{margin-top:14px;padding:10px 16px;border:0;border-radius:7px;background:var(--acc);color:#04101f;font-weight:600;font-size:15px;cursor:pointer}
+  button.sec{background:transparent;border:1px solid var(--line);color:var(--fg);font-weight:500;margin-right:6px}button:disabled{opacity:.5;cursor:wait}
+  .verdict{font-size:22px;font-weight:700;padding:12px 14px;border-radius:8px;margin-bottom:10px}.APPROVE_RELEASE{background:rgba(46,160,67,.15);color:#3fb950;border:1px solid var(--ok)}
+  .REJECT{background:rgba(218,54,51,.13);color:#ff7b72;border:1px solid var(--bad)}table{width:100%;border-collapse:collapse;font-size:14px}td{padding:5px 4px;border-bottom:1px solid var(--line);vertical-align:top}td:first-child{color:var(--mute);width:38%}
+  code{font-size:12.5px;word-break:break-all}a{color:var(--acc)}.chips button{font-size:13px;padding:6px 10px;margin-top:6px}ol{color:var(--mute);padding-left:20px}
+</style>
+</head>
+<body><main>
+<h1>🛡️ P2P Alert Guard</h1>
+<p>In Nigerian P2P crypto trades, scammers send <b>fake bank-alert screenshots</b> and wait for the seller to release USDT. This agent checks the payment with <b>Paystack itself</b> over a <b>Reclaim zkTLS</b> connection, decides <b>APPROVE_RELEASE</b> or <b>REJECT</b>, and puts a Groth16 receipt of that decision on <b>zkVerify</b>.</p>
+
+<div class="card">
+  <div class="row">
+    <div><label>Payment reference (from the buyer)</label><input id="ref" placeholder="e.g. p2pguard-ok-001"></div>
+    <div><label>Amount the buyer says they paid (₦)</label><input id="amt" placeholder="25000" inputmode="decimal"></div>
+  </div>
+  <div class="row">
+    <div><label>Trade / order ID (optional — the same ID can re-check safely)</label><input id="trade" placeholder="order-1234"></div>
+    <div><label>Payee (optional)</label><input id="payee" placeholder="merchant name"></div>
+  </div>
+  <button id="go">Check before releasing</button>
+  <div class="chips"><p style="margin-top:14px">Try a scenario:</p>
+    <button class="sec" data-r="" data-a="25000" id="fresh">➕ New ₦25,000 test payment</button>
+    <button class="sec" data-r="p2pguard-ok-002" data-a="500000">Buyer claims ₦500k, paid ₦50k</button>
+    <button class="sec" data-r="GTB-ALERT-77812093" data-a="25000">Reference from a fake screenshot</button>
+    <button class="sec" data-r="p2pguard-fail-001" data-a="10000">Card charge that failed</button>
+    <button class="sec" data-r="p2pguard-abandoned-001" data-a="5000">Checkout abandoned</button>
+  </div>
+  <p style="font-size:13px">Tip: after an approval, press “Check” again with a different trade ID — the same alert can't release crypto twice (REFERENCE_REUSED).</p>
+</div>
+
+<div id="out"></div>
+
+<h2>How it works</h2>
+<ol>
+  <li>The seller (or their bot) sends the buyer's claim: reference + amount.</li>
+  <li>The guard calls <code>GET api.paystack.co/transaction/verify/:reference</code> through <b>Reclaim zkFetch</b>. The seller's Paystack secret key is a private header: used inside TLS, never in the proof.</li>
+  <li>The zkTLS proof reveals only status, amount, currency, reference, mode and Paystack transaction id; customer details stay redacted.</li>
+  <li>Deterministic policy: APPROVE only if status = success, amount is exact, currency = NGN, and the reference was never used to release before (Redis). Anything else, or any error, is a REJECT.</li>
+  <li>A Groth16 circuit recomputes the decision from those facts, bound to the Reclaim proof ID, and the proof is submitted to zkVerify.</li>
+</ol>
+<p>API: <code>POST /check {"reference","expected_amount_ngn","trade_id?","payee?"}</code> · <a href="/health">/health</a> · <a href="https://github.com/danielx2d4144/zkverify-gatekeeper-agent/tree/main/p2p-alert-guard">source &amp; README</a></p>
+<p style="font-size:13px">Demo runs on Paystack <b>test mode</b> (no real money). zkTLS proofs are rationed (free Reclaim tier), so repeat checks reuse a cached proof.</p>
+</main>
+<script>
+const $=s=>document.querySelector(s), esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const ngn=n=>n==null?'—':'₦'+Number(n).toLocaleString('en-NG');
+document.querySelectorAll('.chips button:not(#fresh)').forEach(b=>b.onclick=()=>{$('#ref').value=b.dataset.r;$('#amt').value=b.dataset.a;$('#trade').value='';run()});
+$('#fresh').onclick=async()=>{const b=$('#fresh');b.disabled=true;b.textContent='Paying with Paystack test card…';
+  try{const r=await (await fetch('/api/demo-payment',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({amount_ngn:25000})})).json();
+    if(!r.reference)throw new Error(r.error||'failed');$('#ref').value=r.reference;$('#amt').value=r.amount_ngn;$('#trade').value='order-'+Math.floor(Math.random()*1e4);
+    $('#out').innerHTML=`<div class="card"><p>Created Paystack test payment <code>${esc(r.reference)}</code> (${esc(r.paystack_status)}). Now press <b>Check before releasing</b>.</p></div>`;}
+  catch(e){$('#out').innerHTML=`<div class="card"><p>${esc(e.message)}</p></div>`}b.disabled=false;b.textContent='➕ New ₦25,000 test payment'};
+$('#go').onclick=run;
+async function run(){const b=$('#go');b.disabled=true;b.textContent='Proving with Paystack over zkTLS… (up to ~40s)';
+  $('#out').innerHTML='<div class="card"><p>Fetching Paystack through Reclaim zkFetch and generating proofs…</p></div>';
+  const body={reference:$('#ref').value.trim(),expected_amount_ngn:$('#amt').value.trim()};if($('#trade').value.trim())body.trade_id=$('#trade').value.trim();if($('#payee').value.trim())body.payee=$('#payee').value.trim();
+  try{const r=await (await fetch('/check',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(body)})).json();show(r)}
+  catch(e){$('#out').innerHTML=`<div class="card"><p>Network error: ${esc(e.message)}</p></div>`}b.disabled=false;b.textContent='Check before releasing'}
+function show(r){const a=r.attested||{},z=r.zktls||{},v=r.zkverify||{},s=v.submission||{};
+  const title=r.decision==='APPROVE_RELEASE'?'✅ APPROVE_RELEASE — safe to release':'⛔ REJECT — do not release';
+  let h=`<div class="card"><div class="verdict ${esc(r.decision)}">${title}</div><table>
+  <tr><td>Reason</td><td><b>${esc(r.reason_code)}</b><br>${esc(r.detail)}</td></tr>
+  <tr><td>Claim</td><td>${esc(r.reference)} · ${ngn(r.expected_amount_ngn)} · trade ${esc(r.trade_id)}</td></tr>`;
+  if(r.attested)h+=`<tr><td>Paystack says (zkTLS-attested)</td><td>status <b>${esc(a.status)}</b> · ${ngn(a.amount_ngn)} ${esc(a.currency)} · ${esc(a.mode)} mode · txn ${esc(a.txid)}</td></tr>
+  <tr><td>Reclaim proof</td><td><code>${esc(z.identifier)}</code><br>attestor ${esc(z.attestor)}${z.cached?' · cached proof (no new zkFetch)':''}<br><a href="/api/result?id=${esc(r.check_id)}" target="_blank">full proof JSON</a></td></tr>
+  <tr><td>zkVerify receipt</td><td>Groth16 public signals: decision=${esc((v.public_signals||[])[0])}, reasonMask=${esc((v.public_signals||[])[1])}<br>submission: <b>${esc(s.status)}</b>${s.jobId?` · job <code>${esc(s.jobId)}</code> · <a href="#" id="zs">check status</a>`:''}<div id="zst"></div></td></tr>`;
+  h+=`<tr><td>Check ID</td><td><code>${esc(r.check_id)}</code> · ${esc(r.ms)} ms${r.idempotent_replay?' · idempotent replay':''}</td></tr></table></div>`;
+  $('#out').innerHTML=h;const zs=$('#zs');if(zs)zs.onclick=async e=>{e.preventDefault();const j=await (await fetch('/api/zkverify?id='+r.check_id)).json();
+    $('#zst').innerHTML=`status <b>${esc(j.status)}</b>${j.txHash?` · tx <a target="_blank" href="${esc(j.explorer)}"><code>${esc(j.txHash)}</code></a>`:''}`}}
+</script>
+</body></html>
