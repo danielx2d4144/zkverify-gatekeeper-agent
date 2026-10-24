@@ -10,10 +10,14 @@
     "test": "node test/run.js",
     "verify-proof": "node scripts/verify-proof.js"
   },
-  "engines": { "node": "24.x" },
+  "engines": {
+    "node": "24.x"
+  },
   "dependencies": {
+    "@reclaimprotocol/attestor-core": "5.1.6",
     "@reclaimprotocol/js-sdk": "5.8.3",
-    "@reclaimprotocol/zk-fetch": "1.1.0",
+    "@reclaimprotocol/tls": "0.1.5",
+    "ethers": "6.17.0",
     "snarkjs": "0.7.6"
   }
 }
