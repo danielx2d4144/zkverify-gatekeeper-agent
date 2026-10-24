@@ -3,7 +3,7 @@
     "api/check.js": {
       "maxDuration": 60,
       "memory": 1769,
-      "includeFiles": "{circuits/**,node_modules/@reclaimprotocol/zk-symmetric-crypto/lib/stwo/**}"
+      "includeFiles": "{circuits/**,node_modules/@reclaimprotocol/zk-symmetric-crypto/lib/stwo/**,node_modules/esprima-next/dist/esm/**}"
     },
     "api/zkverify.js": {
       "maxDuration": 20
@@ -12,7 +12,8 @@
       "maxDuration": 10
     },
     "api/health.js": {
-      "maxDuration": 10
+      "maxDuration": 10,
+      "includeFiles": "{circuits/**,node_modules/@reclaimprotocol/zk-symmetric-crypto/lib/stwo/**,node_modules/esprima-next/dist/esm/**}"
     },
     "api/demo-payment.js": {
       "maxDuration": 15
