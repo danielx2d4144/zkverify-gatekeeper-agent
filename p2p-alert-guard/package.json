@@ -1,0 +1,19 @@
+{
+  "name": "p2p-alert-guard",
+  "version": "1.0.0",
+  "description": "Stops fake bank-alert scams in Nigerian P2P crypto trades: zkTLS-proves the payment with Paystack before the seller releases crypto, and records the decision on zkVerify.",
+  "main": "src/server.js",
+  "private": true,
+  "license": "MIT",
+  "scripts": {
+    "start": "node src/server.js",
+    "test": "node test/run.js",
+    "verify-proof": "node scripts/verify-proof.js"
+  },
+  "engines": { "node": "22.x" },
+  "dependencies": {
+    "@reclaimprotocol/js-sdk": "5.8.3",
+    "@reclaimprotocol/zk-fetch": "1.1.0",
+    "snarkjs": "0.7.6"
+  }
+}
