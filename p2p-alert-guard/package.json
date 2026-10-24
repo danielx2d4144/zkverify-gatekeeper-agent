@@ -10,7 +10,7 @@
     "test": "node test/run.js",
     "verify-proof": "node scripts/verify-proof.js"
   },
-  "engines": { "node": "22.x" },
+  "engines": { "node": "24.x" },
   "dependencies": {
     "@reclaimprotocol/js-sdk": "5.8.3",
     "@reclaimprotocol/zk-fetch": "1.1.0",
