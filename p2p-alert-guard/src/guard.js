@@ -43,7 +43,12 @@ function makeGuard({ store, zktls = zktlsDefault, receipt = receiptDefault, now 
     }
     let proof;
     try { proof = await zktls.zkFetchPaystack(reference, c); }
-    catch (e) { return { reject: 'PROOF_UNAVAILABLE', detail: 'zkFetch failed: ' + String(e.message || e).slice(0, 200) }; }
+    catch (e) {
+      const msg = String(e.message || e);
+      // failed before reaching Reclaim's attestor: don't count it against the quota
+      if (/not registered|application secret|does not match/i.test(msg)) { await store.decr(`zk:day:${day}`); await store.decr(`zk:month:${month}`); }
+      return { reject: 'PROOF_UNAVAILABLE', detail: 'zkFetch failed: ' + msg.slice(0, 200) };
+    }
     return { proof, cached: false, fresh: true };
   }
 
