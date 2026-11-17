@@ -1,0 +1,15 @@
+node_modules/
+.env
+.env.*
+!.env.example
+.state/
+research/*.html
+research/*browser*
+scripts/chrome-*.swift
+*.log
+
+.vercel
+.env*
+.vercel/
+artifacts/*
+!artifacts/.gitkeep

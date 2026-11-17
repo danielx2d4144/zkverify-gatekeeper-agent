@@ -1,0 +1,19 @@
+{
+  "functions": {
+    "api/agent.mjs": {
+      "maxDuration": 60,
+      "includeFiles": "artifacts/**"
+    }
+  },
+  "rewrites": [
+    {
+      "source": "/agent",
+      "destination": "/api/agent"
+    },
+    {
+      "source": "/health",
+      "destination": "/api/agent"
+    }
+  ],
+  "framework": null
+}
